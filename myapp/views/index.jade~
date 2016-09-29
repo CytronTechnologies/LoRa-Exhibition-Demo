@@ -1,0 +1,7 @@
+extends layout
+
+block content
+  h1= title
+  p Welcome to #{title}
+  
+  script(async, defer, src='https://maps.googleapis.com/maps/api/js?key=AIzaSyBqEAiL7OalS6PI2cGtXhRj58kdM3dYMHk&callback=init_profile_info_googlemap')

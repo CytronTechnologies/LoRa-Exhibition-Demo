@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>LoRa Test</title>
+		<link rel="stylesheet" href="/css/bootstrap.min.css">
+		<link rel="stylesheet" href="/css/style.css">
+		<style>
+			#googlemap{
+				padding-bottom:80%;
+				width:100%;
+			}
+			@media (max-width: 991px){
+				#googlemap{
+					padding-bottom:35%;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<h1>LoRa Test</h1>
+			<div class="row">
+				<div class="col col-lg-6 col-md-6"><div id="googlemap"></div></div>
+				<div class="col col-lg-6 col-md-6">
+					<h3>Activity Feed</h3>
+					<div class="activity"></div>
+				</div>
+			</div>
+			
+		</div>
+		<script src="/js/jquery.min.js"></script>
+		<script src="/js/socket.io.js"></script>
+		<script>
+		// GOOGLE MAP INIT AND GEOCODING
+		/*
+		 * Set default location at Cytron Technologies Sdn Bhd GPS coordinates
+		 */
+
+		var globalmap,
+			globalmarker,
+			infoLat = 5.30755,
+			infoLng = 100.47232;
+
+		function init_profile_info_googlemap(){
+			var myLatLng = {lat: infoLat, lng: infoLng}
+			var map = new google.maps.Map(document.getElementById("googlemap"), {
+		          	zoom: 10,
+		          	center: myLatLng,
+			  		mapTypeId:google.maps.MapTypeId.ROADMAP,
+		        });
+			var marker = new google.maps.Marker({
+		            map: map,
+		            position: myLatLng
+		        });
+			
+			$(window).on('load resize', function(){
+				setTimeout(function(){
+					google.maps.event.trigger(map, 'resize'); 
+					map.setCenter({lat: infoLat, lng: infoLng});
+				}, 500);
+		    	});
+
+			globalmap = map;
+			globalmarker = marker;
+			//geocoder = new google.maps.Geocoder();
+
+			//Retrive Uplink data fron LoRa nodes
+			var activityFeed = document.querySelector(".activity")
+	        var socket = io('http://localhost')
+
+	        socket.on('uplink', function (data) {
+		        // Log to the console
+		        console.log("Uplink from Device:" + data.devEUI, data)
+
+		        // Create a new DOM element
+		        var uplink = document.createElement("div")
+		        var date = new Date(data.metadata.server_time)
+		        var dateString = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds()
+		        uplink.innerText = dateString + " - Uplink " + data.counter + " from " + data.devEUI + ": " + JSON.stringify(data.fields)
+
+		        // Append to the activity feed
+		        activityFeed.insertBefore(uplink, activityFeed.firstChild)
+		    })
+			
+		}
+		</script>
+		<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBqEAiL7OalS6PI2cGtXhRj58kdM3dYMHk&callback=init_profile_info_googlemap"></script>
+	</body>
+</html>
