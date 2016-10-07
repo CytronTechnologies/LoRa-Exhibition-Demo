@@ -43,6 +43,10 @@ html
       border-radius:0 0 5px 5px;
       background:white;
       }
+      .panel-heading h4{
+      display:inline-block;
+      vertical-align:middle;
+      }
       .device-container{
       height:400px;
       overflow:hidden;
@@ -80,6 +84,7 @@ html
         .row
          .col.col-lg-5.col-md-5
           #googlemap
+          a#centermap(href='javascript:void(0)') Center
          .col.col-lg-7.col-md-7
           .activity
        #log.tab-pane.fade
@@ -91,7 +96,11 @@ html
     script(src='/js/socket.io.js')
     script.
       var activityFeed = $(".activity");
-      var globalmarker = {};
+      var globalmarker = {},
+      infowindow;
+      var dev = 0;
+      var totalLat =0,
+      totalLng = 0;
       
       // GOOGLE MAP INIT AND GEOCODING
       /*
@@ -118,6 +127,9 @@ html
       }, 500);
       });
       globalmap = map;
+      infowindow = new google.maps.InfoWindow({
+      content: 'Hello world'
+      });
 
       // read device json
       $.getJSON("application.json", function(result){
@@ -126,12 +138,18 @@ html
       console.log(field);
       //console.log(i);
       var dev = field.abp;
+      
       for(var x=0; x< dev.length ;x++){
-      globalmarker[dev[x].devaddr]=new google.maps.Marker({map:globalmap});
+      globalmarker[dev[x].devaddr]=new google.maps.Marker({map:globalmap,icon:dev[x].icon,position:{lat:0,lng:0},id:dev[x].devaddr});
+      google.maps.event.addListener(globalmarker[dev[x].devaddr], 'click', function() {
+      var content = '<div><b>Device</div><div>'+this.id+'</b></div>'+$('#'+this.id+' .panel-body .uplink p').html();
+      infowindow.setContent(content);
+      infowindow.open(globalmap, this);  
+      });
       var item = '<div class="device-item panel panel-danger" id="'
       item += dev[x].devaddr;
       item += '">';
-      item += '<div class="panel-heading"><h4><b>Device '+dev[x].devaddr+'</b></h4></div>';
+      item += '<div class="panel-heading"><img src='+dev[x].icon+'><h4><b>Device '+dev[x].devaddr+'</b></h4></div>';
       item += '<div class="panel-body"><div class="uplink"><h4><b>Uplink</b></h4><p>No data</p></div><div class="downlink"><h4><b>Downlink</b></h4><p>Not available</p></div></div>';
       item += '<div class="panel-footer">';
       item += '<div class="time">Last updated: <span>Unknown</span></div>';
@@ -148,7 +166,7 @@ html
       var socket = io('/')
       socket.on('uplink', function (data) {
       // Log to the console
-      console.log("Uplink from Device:" + data.devEUI, data)
+      //console.log("Uplink from Device:" + data.devEUI, data)
       var logbox = $('#log .device');
       // Create a new DOM element
       var uplink = document.createElement("div")
@@ -166,12 +184,39 @@ html
       });
       //$('#'+data.devEUI+' .uplink p').text(JSON.stringify(data.fields));
       if(data.fields.Lat && data.fields.Lng){
+      
       globalmarker[data.devEUI].setPosition({lat: data.fields.Lat, lng: data.fields.Lng});
+
+      dev = 0,
+      avrglat=0,
+      avrglng=0;
+
+      $.each(globalmarker, function(i, field){
+      var lat = globalmarker[i].getPosition().lat();
+      var lng = globalmarker[i].getPosition().lng();
+      if(lat&&lng){
+      avrglat += lat;
+      avrglng += lng;
+      dev++;
+      }
+      })
+      totalLat = avrglat/dev;
+      totalLng = avrglng/dev;
       }
       $('#'+data.devEUI+' .uplink p').html(obj);
       $('#'+data.devEUI+' .time span').text(dateString);
       $('#'+data.devEUI+' .counter span').text(data.counter);
       })
+
+      function focusCenter(){
+      //console.log("Devices: "+dev);
+      if(dev){globalmap.setCenter({lat:totalLat, lng: totalLng});
+      globalmap.setZoom(10);
+      //console.log(avrglat/dev, avrglng/dev);
+      infowindow.close();
+      }
+      }
+      $('#centermap').click(function(){focusCenter()});
       
     script(async='', defer='', src='https://maps.googleapis.com/maps/api/js?key=AIzaSyBqEAiL7OalS6PI2cGtXhRj58kdM3dYMHk&callback=init_profile_info_googlemap')
 
