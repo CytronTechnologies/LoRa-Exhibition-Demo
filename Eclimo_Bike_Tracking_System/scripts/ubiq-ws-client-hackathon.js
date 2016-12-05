@@ -7,8 +7,8 @@ var WebSocket = require("ws");
 var conf = {
     host: "guestnet-malaysia.orbiwise.com",
     port: null,
-    userid: "cytron.com.my",
-    password: "RH7-bdy-4XZ-b6u"
+    userid: "eclimo",
+    password: "eclimo123"
 };
 
 var url = "wss://" + conf.host + (conf.port != null ? ":" + conf.port : "") + "/websocket/connect";

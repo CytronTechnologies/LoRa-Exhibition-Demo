@@ -1,0 +1,143 @@
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Plotting live data for Slider</title>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script src="js/highstock.js"></script>
+    <script src="js/exporting.js"></script>
+    <style media="screen">
+      #connected{
+	font-family:"Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, sans-serif;
+	font-size:14px;	
+      }
+      .green{
+	color: green;
+      }
+      .red{
+	color: red;
+      }
+    </style>
+    <script type="text/javascript">
+
+        var chart; // global variuable for chart
+	var dataTopics = new Array();
+
+	var socket = io('/')
+	var onMessageArrived = function(data) {
+		// Log to the console
+        	console.log("Uplink from Device:" + data.devEUI, data)
+
+		var z = data.fields;
+		console.log(z);
+		// parse into JSON format
+		//var z = JSON.parse(x)
+
+		if (dataTopics.indexOf(data.devEUI) < 0){
+		
+		    console.log("New device EUI =" + data.devEUI );
+		
+		    dataTopics.push(data.devEUI); //add new topic to array
+
+		    var i = 0;
+
+		    for(var key in z){
+
+			i = i + 1;			
+			var newseries = {
+		            id: i,
+		            name: key, // hard-coded, need to be fixed
+		            data: []
+		        };
+
+			chart.addSeries(newseries); //add the series
+		    }
+
+		}
+		
+		//show the content
+
+		var myEpoch = new Date().getTime(); //get current epoch time
+		
+  
+		if ( data.devEUI == "00000000C2E67547") {
+			console.log("enter here");	
+			var i = 0;
+			for(var key in z){
+				var thenum = parseFloat(z[key]); //remove any text spaces from the message	
+				if (isNumber(thenum)) { //check if it is a real number and not text
+					var plotMqtt = [myEpoch, Number(thenum)]; //create the array
+					plot(plotMqtt, i);	//send it to the plot function
+				};
+				i++;
+	
+			}
+		}
+		
+	};
+        
+        socket.on('uplink', onMessageArrived);
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////	
+
+//check if a real number	
+	function isNumber(n) {
+	  return !isNaN(parseFloat(n)) && isFinite(n);
+	};
+
+//function that is called once the document has loaded
+	function init() {
+		//i find i have to set this to false if i have trouble with timezones.
+		Highcharts.setOptions({
+			global: {
+				useUTC: false
+			}
+		});
+	};
+
+
+//this adds the plots to the chart	
+    function plot(point, chartno) {
+    	console.log("point=" + point);
+        console.log("chartno=" + chartno);
+
+	var series = chart.series[chartno],
+	    shift = series.data.length > 40; // shift if the series is longer than 20 
+            
+        console.log("series.data.length=" + series.data.length);
+        // add the point
+        chart.series[chartno].addPoint(point, true, shift);  
+    };
+
+//settings for the chart
+	$(document).ready(function() {
+	    chart = new Highcharts.Chart({
+	        chart: {
+	            renderTo: 'container',
+	            defaultSeriesType: 'spline'
+	        },
+	        title: {
+	            text: 'Plotting live data of Slider'
+	        },
+	        xAxis: {
+	            type: 'datetime',
+	            tickPixelInterval: 100,
+	            maxZoom: 20 * 1000
+	        },
+	        yAxis: {
+	            minPadding: 0.2,
+	            maxPadding: 0.2,
+	            title: {
+	                text: 'Value',
+	                margin: 80
+	            }
+	        },
+	        series: []
+	    });        
+	});
+</script>
+  </head>
+  <body onload="init();"><!--Start the javascript ball rolling and connect to the mqtt broker-->
+	<div id="container" style="height: 500px; min-width: 500px"></div><!-- this the placeholder for the chart-->
+  </body>
+</html>

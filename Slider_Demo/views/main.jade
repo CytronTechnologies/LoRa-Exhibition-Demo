@@ -1,0 +1,222 @@
+doctype html
+html
+  head
+    title LoRa Test
+    link(rel='stylesheet', href='/css/bootstrap.min.css')
+    link(rel='stylesheet', href='https://fonts.googleapis.com/css?family=Oswald')
+    //link(rel='stylesheet', href='/css/style.css')
+    style.
+      body{
+      background:#eee;
+      }
+      #googlemap{
+      padding-bottom:80%;
+      width:100%;
+      margin-bottom:20px;
+      }
+      .device-item{
+      width:100%;
+      max-width:500px;
+      }
+      .navbar{
+      border-radius:0;
+      }
+      .navbar-brand{
+      height:80px;
+      position:relative;
+      padding-top:0;
+      padding-bottom:0;
+      }
+      .navbar-brand img{
+      height:inherit;
+      width:auto;
+      }
+      .navbar-header h1{
+      float:left;
+      color:white;
+      }
+      p{margin:0}
+      .tab-content{
+      padding:20px 10px;
+      border:1px solid #ddd;
+      border-top:none;
+      border-radius:0 0 5px 5px;
+      background:white;
+      }
+      .panel-heading h4{
+      display:inline-block;
+      vertical-align:middle;
+      }
+      .device-container{
+      height:400px;
+      overflow:hidden;
+      }
+      .device{
+      height:100%;
+      overflow:auto;
+      }
+      @media (max-width: 991px){
+      #googlemap{
+      padding-bottom:35%;
+      }
+      }
+  body
+    nav.navbar.navbar-inverse
+     .container-fluid
+      .navbar-header
+        button.navbar-toggle.collapsed(type='button', data-toggle='collapse', data-target='#bs-example-navbar-collapse-1', aria-expanded='false')
+          span.sr-only Toggle navigation
+          span.icon-bar
+          span.icon-bar
+          span.icon-bar
+        a.navbar-brand(href='http://www.cytron.com.my/')
+         img(src='/img/Cytron-Logo-LIGHT_BLUE.png')
+        h1
+         b LoRa Test
+    .container
+      ul.nav.nav-tabs
+       li.active
+        a(data-toggle='tab', href='#dev') Devices
+       li
+        a(data-toggle='tab', href='#log') Log
+      .tab-content
+       #dev.tab-pane.fade.in.active
+        .row
+         .col.col-lg-5.col-md-5
+          #googlemap
+          a#centermap(href='javascript:void(0)') Center
+         .col.col-lg-7.col-md-7
+          .activity
+       #log.tab-pane.fade
+        .device-container
+         .device
+      
+    script(src='/js/jquery.min.js')
+    script(src='/js/bootstrap.min.js')
+    script(src='/js/socket.io.js')
+    script.
+      var activityFeed = $(".activity");
+      var globalmarker = {},
+      infowindow;
+      var dev = 0;
+      var totalLat =0,
+      totalLng = 0;
+      
+      // GOOGLE MAP INIT AND GEOCODING
+      /*
+      * Set default location at Cytron Technologies Sdn Bhd GPS coordinates
+      */
+      var globalmap,
+      infoLat = 5.30755,
+      infoLng = 100.47232;
+      function init_profile_info_googlemap(){
+      var myLatLng = {lat: infoLat, lng: infoLng}
+      var map = new google.maps.Map(document.getElementById("googlemap"), {
+      zoom: 10,
+      center: myLatLng,
+      mapTypeId:google.maps.MapTypeId.ROADMAP,
+      });
+      //var marker = new google.maps.Marker({
+      //map: map,
+      //position: myLatLng
+      //});
+      $(window).on('load resize', function(){
+      setTimeout(function(){
+      google.maps.event.trigger(map, 'resize');
+      map.setCenter({lat: infoLat, lng: infoLng});
+      }, 500);
+      });
+      globalmap = map;
+      infowindow = new google.maps.InfoWindow({
+      content: 'Hello world'
+      });
+
+      // read device json
+      $.getJSON("application.json", function(result){
+      $.each(result, function(i, field){
+      //$("div.device").append(field+ " ");
+      console.log(field);
+      //console.log(i);
+      var dev = field.abp;
+      
+      for(var x=0; x< dev.length ;x++){
+      globalmarker[dev[x].devaddr]=new google.maps.Marker({map:globalmap,icon:dev[x].icon,position:{lat:0,lng:0},id:dev[x].devaddr});
+      google.maps.event.addListener(globalmarker[dev[x].devaddr], 'click', function() {
+      var content = '<div><b>Device</div><div>'+this.id+'</b></div>'+$('#'+this.id+' .panel-body .uplink p').html();
+      infowindow.setContent(content);
+      infowindow.open(globalmap, this);  
+      });
+      var item = '<div class="device-item panel panel-danger" id="'
+      item += dev[x].devaddr;
+      item += '">';
+      item += '<div class="panel-heading"><img src='+dev[x].icon+'><h4><b>Device '+dev[x].devaddr+'</b></h4></div>';
+      item += '<div class="panel-body"><div class="uplink"><h4><b>Uplink</b></h4><p>No data</p></div><div class="downlink"><h4><b>Downlink</b></h4><p>Not available</p></div></div>';
+      item += '<div class="panel-footer">';
+      item += '<div class="time">Last updated: <span>Unknown</span></div>';
+      item += '<div class="counter">Counter: <span>0</span></div>';
+      item += '</div>';
+      item += '</div>';
+      activityFeed.append(item);
+      }
+      });
+      });
+      }
+
+      //Retrive Uplink data fron LoRa nodes
+      var socket = io('/')
+      socket.on('uplink', function (data) {
+      // Log to the console
+      //console.log("Uplink from Device:" + data.devEUI, data)
+      var logbox = $('#log .device');
+      // Create a new DOM element
+      var uplink = document.createElement("div")
+      var date = new Date(data.metadata.server_time)
+      var dateString = (date.getHours()>9?date.getHours():'0'+date.getHours()) + ":" + (date.getMinutes()>9?date.getMinutes():'0'+date.getMinutes()) + ":" + (date.getSeconds()>9?date.getSeconds():'0'+date.getSeconds())
+      uplink.innerText = dateString + " - Uplink " + data.counter + " from " + data.devEUI + ": " + JSON.stringify(data.fields)
+      // Append to the activity feed
+      //logbox.insertBefore(uplink, logbox.firstChild)
+      logbox.prepend(uplink);
+
+      $('#'+data.devEUI).removeClass('panel-danger').addClass('panel-primary');
+      var obj='';
+      $.each(data.fields, function(key, value){
+      obj += '<p>'+key+': '+'<span>'+value+'</span></p>'
+      });
+      //$('#'+data.devEUI+' .uplink p').text(JSON.stringify(data.fields));
+      if(data.fields.Lat && data.fields.Lng){
+      
+      globalmarker[data.devEUI].setPosition({lat: data.fields.Lat, lng: data.fields.Lng});
+
+      dev = 0,
+      avrglat=0,
+      avrglng=0;
+
+      $.each(globalmarker, function(i, field){
+      var lat = globalmarker[i].getPosition().lat();
+      var lng = globalmarker[i].getPosition().lng();
+      if(lat&&lng){
+      avrglat += lat;
+      avrglng += lng;
+      dev++;
+      }
+      })
+      totalLat = avrglat/dev;
+      totalLng = avrglng/dev;
+      }
+      $('#'+data.devEUI+' .uplink p').html(obj);
+      $('#'+data.devEUI+' .time span').text(dateString);
+      $('#'+data.devEUI+' .counter span').text(data.counter);
+      })
+
+      function focusCenter(){
+      //console.log("Devices: "+dev);
+      if(dev){globalmap.setCenter({lat:totalLat, lng: totalLng});
+      globalmap.setZoom(10);
+      //console.log(avrglat/dev, avrglng/dev);
+      infowindow.close();
+      }
+      }
+      $('#centermap').click(function(){focusCenter()});
+      
+    script(async='', defer='', src='https://maps.googleapis.com/maps/api/js?key=AIzaSyBqEAiL7OalS6PI2cGtXhRj58kdM3dYMHk&callback=init_profile_info_googlemap')
+
