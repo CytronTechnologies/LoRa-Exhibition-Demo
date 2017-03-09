@@ -1,0 +1,33 @@
+{
+    "result": [{
+        "id": "BE7A0100000008F6",
+        "name": "Le Roy Room"
+    }, {
+        "id": "BE7A0100000008F0",
+        "name": "Le Roy House"
+    }, {
+        "id": "BE7A0100000008F5",
+        "name": "AHU room"
+    }, {
+        "id": "BE7A0100000008F3",
+        "name": "Finance Office"
+    }, {
+        "id": "BE7A0100000008EF",
+        "name": "Elevator Entrance To Office"
+    },{
+        "id": "BE7A0100000008F4",
+        "name": "SPFM Facility Management Office"
+    },{
+        "id": "0004A30B001B312E",
+        "name": "Menara Sunway Control Room"
+    },{
+        "id": "000000002B286014",
+        "name": "Sunway Anexxe Level 5 East Wing"
+    },{
+        "id": "BE7A0100000008F1",
+        "name": "Sun-U Residence Water Tank 28th Floor"
+    },{
+        "id": "BE7A0100000008F2",
+        "name": "Menara Sunway L19 Pantry"
+    }]
+}

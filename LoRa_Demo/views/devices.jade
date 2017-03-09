@@ -1,0 +1,144 @@
+extends layout
+
+block content
+  body(ng-Controller='DevicesController')
+    div.container
+        ul
+         li
+          a(href='/') Home
+         li
+          a(href='/statistics') Statistics
+         li
+          a(href='/devices') History
+        div(style="clear:both")
+        ul.collaborators
+         li.sunway
+           img(src="/img/Sunway.png")
+         li.lora
+           img(src="/img/LoRa.png")
+         li.cytron
+           img(src="/img/Cytron.png")
+        div.title
+          h1(style="margin-bottom:50px")
+            b= title
+        form(id="FilterForm" method="GET" action="/devices" style="text-align:left")
+          input(id="page" name="page" ng-model="currentPage" type="hidden" value="")
+          div.row
+              div.col.col-lg-2.col-md-2.col-sm-2
+               label(for='startDate') Date:
+                select.form-control(name="startDate" ng-model="data.startDate" ng-change="updateEndPeriods()" ng-options="period as (period|amUtc|amLocal|amDateFormat:'DD/MM/YYYY') for period in periods track by period")
+                 option(value="") --Please select--
+              div.col.col-lg-2.col-md-2.col-sm-2
+               div.form-group
+                label(for='startTime') From:
+                 select.form-control(name="startTime" ng-disabled="!data.startDate&&!data.endDate" ng-change="updateEndTime()" ng-model="data.startTime", ng-options="time as (Convert12HourFormat(time)) for time in times track by time")
+                  option(value="") --Please select--
+              div.col.col-lg-2.col-md-2.col-sm-2
+               label(for='endTime') To:
+                select.form-control(name="endTime" ng-disabled="!data.startDate&&!data.endDate" ng-model="data.endTime", ng-options="time as (Convert12HourFormat(time)) for time in endTimes track by time")
+                 option(value="") --Please select--
+              div.col.col-lg-3.col-md-3.col-sm-3
+               label(for='Place') Place:
+                select.form-control(id="place" name="place" ng-model="data.place", ng-options="place.id as place.name for place in place_array")
+                 option(value="") --Please select--
+          div.row
+           div.col.col-lg-2.col-md-2.col-sm-4
+            div.form-group
+             button.btn.btn-primary.form-control(type='submit') Filter
+          hr
+        ul.pagination-sm(ng-change="setPage()" uib-pagination total-items="pagination.totalItems" ng-model="currentPage" max-size="maxSize" boundary-links="true" rotate="false" items-per-page="pagination.itemsPerPage")
+        table.table.table-striped
+         thead
+          tr
+           th Date
+           th Time
+           th Place
+           th Temperature(&#8451)
+           th Location (GPS)
+          tr
+         tbody
+          tr(ng-repeat="device in devices")
+           td {{device.ts | amUtc | amLocal | amDateFormat:'DD/MM/YYYY'}}
+           td {{device.ts | amUtc | amLocal | amDateFormat:'h:mm:ss a'}} 
+           td {{device.place}} 
+           td {{device.convertedData.temperature| number : 2}}
+           td
+            p(ng-if="device.convertedData.location.lat") Latitude : {{device.convertedData.location.lat }}
+            p(ng-if="device.convertedData.location.lng") Longitude: {{device.convertedData.location.lng }}
+  script.
+    app.controller('DevicesController', function($window, $scope, $http, $interval, socket, moment) {
+    $scope.pagination = JSON.parse('!{pagination}');
+    $scope.maxSize = 10; //Number of pager buttons to show
+    $scope.currentPage = $scope.pagination.currentPage;
+    //initialise data with values if any
+    $scope.data = JSON.parse('!{data}');
+    console.log($scope.data);
+    var now = new Date();
+    //$scope.data.startTime = now.getHours();
+    //$scope.data.startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    $scope.periods = periods;
+    $scope.times = times.map(function(item){
+    return item*3600000;
+    });
+    $scope.updateEndPeriods = function(){
+    $scope.endPeriods = periods.filter(function(item){
+    return item > $scope.data.startDate;
+    });
+    }
+    $scope.updateEndTime = function(){
+    $scope.endTimes = $scope.times.filter(function(item){
+    return item > $scope.data.startTime;
+    });
+    }
+    if($scope.data.startTime || $scope.data.endTime){
+    $scope.updateEndPeriods();
+    $scope.updateEndTime();
+    }
+    $scope.places=[];
+    $scope.place_array=[];
+    $http.get("place.json").then(function(response) {
+    var array = response.data.result;
+    array.forEach(function(item) {
+    $scope.places[item.id] = item.name;
+    })
+    $scope.place_array = array;
+    //console.log('!{devices}');
+    $scope.devices = JSON.parse('!{devices}')
+    $scope.devices.forEach(function(item){
+    item.place = $scope.places[item.EUI];
+    item.convertedData = convertData(item.data);
+    })
+    //console.log($scope.devices)
+    });
+    
+    //new function
+    $scope.Convert12HourFormat = function(input){
+     input = input/3600000;
+     var str='';
+     if(input == 0) str+='12';
+     else str+=(input>12?(input-12):input);
+     str+=':00 ';
+     str+=(input>12?'pm':'am');
+     return str;
+    }
+    
+    $scope.setPage = function(){
+    console.log($scope.currentPage, $scope.pagination.currentPage);
+    if($scope.currentPage!=$scope.pagination.currentPage){
+    document.getElementById("page").value=$scope.currentPage;
+    document.getElementById("FilterForm").submit();
+    }
+    }
+    
+    $scope.send = function(){
+    console.log($scope.data);
+    $http({
+    method  : 'GET',
+    url     : '/devices',
+    params  : $scope.data
+    }).then(function(result){
+    return result;
+    });
+    }
+    });
+    

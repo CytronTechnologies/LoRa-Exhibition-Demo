@@ -1,0 +1,83 @@
+extends layout
+
+block content
+  body(ng-Controller='DeviceController' ng-init="initGraphs()")
+    div.container
+     ul
+      li
+       a(href='/') Home
+      li
+       a(href='/statistics') Statistics
+      li
+       a(href='/devices') History
+     div(style="clear:both")
+     div.title
+      h2
+       b= title
+     highchart(id="{{log[period].id}}" config="log[period].chartOptions" ng-repeat="period in periods")
+    script.
+     app.controller('DeviceController',function($filter, $window, $scope, $http, $interval, socket, moment){
+        $scope.periods = periods;
+        var info = JSON.parse('!{info}');
+        $scope.log = [];
+        periods.forEach(function(period){
+            var id = moment(period).format('DDMMYY');
+            $scope.log[period] = {
+                id: 'chart-'+id,
+                timestamp: period,
+                chartOptions: [],
+                items: new Array(24)
+            }
+            for(var i=0;i<24;i++){
+                $scope.log[period].items[i]=[];
+            }
+        });
+        console.log($scope.log);
+        //now sorting the info into these individual logs
+        info.forEach(function(item){
+            var date = new Date(item.ts);
+            var category = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+            var time_category = parseInt(date.getHours());
+            $scope.log[category].items[time_category].push(item);
+        })
+        
+        $scope.initGraphs = function(){
+            //start constructing charts
+            periods.forEach(function(period){
+            
+                var series1 = [];
+                var series2 = [];
+                var categories = [];
+                
+                $scope.log[period].items.forEach(function(item, idx){
+                    if(item.length)
+                        series1.push(item[(item.length-1)].fcnt-item[0].fcnt+1);
+                    else
+                        series1.push(0);
+                    series2.push(item.length);
+                    categories.push(moment(period + idx*3600000).format('h a'));
+                });
+            
+                $scope.log[period].chartOptions = {
+                    chart: {
+                       type: 'column'
+                    },
+                    series: [{
+                       name: 'Device Count',
+                       data: series1
+                    },{
+                       name: 'Received Count',
+                       data: series2 
+                    }],
+                    xAxis: {
+                       categories: categories
+                    },
+                    title: {
+                       text: moment(period).format('dddd, Do MMM YYYY')
+                    }
+                };
+                //Highcharts.chart($scope.log[period].id, $scope.log[period].chartOptions);
+            });
+        }
+        
+     });

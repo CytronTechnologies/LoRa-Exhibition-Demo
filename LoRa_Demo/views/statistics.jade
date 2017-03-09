@@ -1,0 +1,72 @@
+extends layout
+
+block content
+  body(ng-Controller='StatisticsController')
+    div.container
+      ul
+       li
+        a(href='/') Home
+       li
+        a(href='/statistics') Statistics
+       li
+        a(href='/devices') History
+      div(style="clear:both")
+      div.title
+        h2
+          b= title
+      div#chart1
+      table.table.table-striped
+             thead
+              tr
+               th Device
+               th Time Started
+               th Last Seen
+               th Device Counts
+               th Received Counts
+               th Estimated Reception Rate(%)
+              tr
+             tbody
+              tr(ng-repeat="info in infos | orderBy:'name'" ng-click="goNext()")
+               td {{info.name}}
+               td {{info.tsInitial| amUtc | amLocal | amDateFormat:'D/M/YYYY, h:mm a'}}
+               td {{info.device.ts| amUtc | amLocal | amDateFormat:'D/M/YYYY, h:mm a'}}
+               td {{info.device.fcnt}} 
+               td {{info.total}} 
+               td {{(info.total*100/info.device.fcnt) | number:2}}
+  script.
+   app.controller('StatisticsController',function($filter, $window, $scope, $http, $interval, socket, moment){
+   $scope.goNext = function(){
+   var url = this.info.device.EUI;
+   $window.location.href = '/statistics/'+url;
+   }
+   $scope.infos = JSON.parse('!{info}');
+   $scope.test = $filter('orderBy')($scope.infos, 'name');
+   console.log($scope.test);
+   var series1 = [];
+   var series2 = [];
+   var categories = [];
+   $scope.test.forEach(function(item){
+   series1.push(item.device.fcnt);
+   series2.push(item.total);
+   categories.push(item.name);
+   })
+   Highcharts.chart('chart1',{
+   chart: {
+   type: 'column'
+   },
+   series: [{
+   name: 'Device Count',
+   data: series1
+   },{
+   name: 'Received Count',
+   data: series2   
+   }],
+   xAxis: {
+   categories: categories
+   },
+   title: {
+   text: 'Data Reception Comparison'
+   }
+   }
+   );
+   });

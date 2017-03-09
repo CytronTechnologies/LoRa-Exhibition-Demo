@@ -1,0 +1,44 @@
+extends layout
+
+block content
+  body(ng-Controller='MainController')
+    div.container
+      ul
+       li
+        a(href='/') Home
+       li
+        a(href='/statistics') Statistics
+       li
+        a(href='/devices') History
+      div(style="clear:both")
+      ul.collaborators
+        li.sunway
+          img(src="/img/Sunway.png")
+        li.lora
+          img(src="/img/LoRa.png")
+        li.cytron
+          img(src="/img/Cytron.png")
+      div.title
+        h1
+          b= title
+        p Welcome to #{title}
+      div.info-container
+        div.row
+          div.col.col-lg-6.col-md-6
+            div.map-container
+              ng-map(center="4.23398,101.9722963" zoom="6" zoom-to-include-markers="auto")
+               marker(ng-if="nodes[i].convertedData.location.lat&&nodes[i].convertedData.location.lng" ng-repeat="i in identifiers" position="{{nodes[i].convertedData.location.lat}},{{nodes[i].convertedData.location.lng}}" title="hello" icon="{{markers[i]}}" animation="Animation.BOUNCE")
+          div.col.col-lg-6.col-md-6
+            div.panel.panel-default(ng-class="nodes[i].connected?'blue':'red'" ng-repeat="i in identifiers")
+              div.panel-heading
+               img(ng-src="{{markers[i].url}}")
+               b {{nodes[i].place}}
+               p.connected {{nodes[i].connected?'Connected':'Disconnected'}}
+              div.panel-body 
+               p Temperature: {{nodes[i].convertedData.temperature}} *C
+               div(ng-show="nodes[i].convertedData.location.lat&&nodes[i].convertedData.location.lng")
+                p Latitude: {{nodes[i].convertedData.location.lat}}
+                p Longitude: {{nodes[i].convertedData.location.lng}}
+              div.panel-footer
+               p Last Count: {{nodes[i].fcnt}}
+               p Last Feed : {{nodes[i].ts | amUtc | amLocal | amDateFormat:'dddd, Do MMMM YYYY, h:mm:ss a'}}
