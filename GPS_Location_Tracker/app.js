@@ -33,45 +33,46 @@ app.use('/', routes);
 app.use('/test', test);
 app.use('/users', users);
 
-// Add Socket.io clients to the appEUI room
-io.on('connection', function (socket) {
-  	socket.join(appEUI);
-	console.log('client joined with '+socket.id)
-	socket.on('disconnect', function(){
-		console.log('client with '+socket.id+' disconnected');
-	});
-});	
-
 // Configuration for The Things Network
 // Find your values with "ttnctl applications" or on the Dashboard:
 // https://staging.thethingsnetwork.org/applications/
 // From your application overview go to "learn how to get data from this app"
 var ttn = require('ttn');
-var appEUI = '70B3D57ED0000977';
-var accessKey = 'ZxrKFW4Cjy2jSZ7erWx6dyOr27F98Bk06W8gPE4KJwI=';
+var region = 'brazil';
+var appId = '70b3d57ed0000977';
+var accessKey = 'ttn-account-v2.juzWB_MKZspLI-PeiUAp2wjGteBuqTK75KdW9urJHnY';
+
+// Add Socket.io clients to the appEUI room
+io.on('connection', function (socket) {
+  	socket.join(appId);
+	console.log('client joined with '+socket.id)
+	socket.on('disconnect', function(){
+		console.log('client with '+socket.id+' disconnected');
+	});
+});
 
 // Start the TTN Client
-var client = new ttn.Client('staging.thethingsnetwork.org', appEUI, accessKey);
+var client = new ttn.Client(region, appId, accessKey);
 
 client.on('connect', function(){
   console.log('[DEBUG]','Connected to ttn network');
 });
 
 // Forward uplink to appEUI room in Socket.io
-client.on('uplink', function (msg) {
-  console.log("[DEBUG]", "Uplink from Device: " + msg.devEUI)
-  io.to(appEUI).emit('uplink', msg)
+client.on('message', function (deviceId, data) {
+  console.log("[DEBUG]", "Message from Device: " + deviceId)
+  data.devEUI = deviceId
+  io.to(appId).emit('uplink', data)
 });
 
 // Forward activations to appEUI room in Socket.io
-client.on('activation', function (evt) {
-  console.log("[DEBUG]", "Activated Device: " + evt.devEUI)
-  io.to(appEUI).emit('activation', evt)
+client.on('activation', function(deviceId, data) {
+    console.log('[INFO] ', 'Activation:', deviceId, data);
 });
 
 // Print errors to the console
 client.on('error', function (err) {
-  console.log("[ERROR]", err)
+  console.log("[ERROR]", err.message)
 });
 
 // Close the TTN client on exit

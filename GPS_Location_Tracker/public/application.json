@@ -1,16 +1,10 @@
 {
-	"70B3D57ED0000977": {
+	"microchip_au_test_node": {
 		"payloadfns": [],
 		"otaa": [],
 		"abp": [{
-			"devaddr": "00000000C2E67547",
-                        "icon": "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
-		}, {
-			"devaddr": "00000000702C0FD9",
+			"devaddr": "microchip_au_test_node",
                         "icon": "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
-		}, {
-			"devaddr": "000000002B286014",
-                        "icon": "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
 		}]
 	}
 }
