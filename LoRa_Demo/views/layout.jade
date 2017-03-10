@@ -5,7 +5,13 @@ html(lang='en', ng-app='myApp')
     meta(name='viewport', content='width=device-width, initial-scale=1.0')
     link(rel='stylesheet', href='/css/bootstrap.min.css')
     link(rel='stylesheet', href='/css/style.css')
-    link(href="https://rawgithub.com/pablojim/highcharts-ng/master/src/highcharts-ng.css" rel="stylesheet")
+    style.
+     highchart
+     {
+     display: block;
+     width: 100%;
+     max-width: 100%;
+     }
     script(src='/js/angular.min.js')
     script(src='/js/socket.io.js')
     script(src='/js/moment.js')
@@ -14,6 +20,5 @@ html(lang='en', ng-app='myApp')
     script(src="/js/highcharts.src.js")
     script(src="/js/highcharts-ng.min.js")
     script(src="/js/ui-bootstrap-tpls.js")
-    script(src='https://maps.googleapis.com/maps/api/js?key=AIzaSyAo1tTKNkZwj7SvnDyGWwIjTWcfK80vRsk')
     script(src='/js/main.js')
   block content

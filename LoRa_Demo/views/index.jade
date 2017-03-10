@@ -6,14 +6,8 @@ block content
       ul
        li
         a(href='/') Home
-       li
-        a(href='/statistics') Statistics
-       li
-        a(href='/devices') History
       div(style="clear:both")
       ul.collaborators
-        li.sunway
-          img(src="/img/Sunway.png")
         li.lora
           img(src="/img/LoRa.png")
         li.cytron
@@ -25,7 +19,7 @@ block content
       div.info-container
         div.row
           div.col.col-lg-6.col-md-6
-            div.map-container
+            div.map-container(map-lazy-load="https://maps.google.com/maps/api/js?key=AIzaSyClRlsn8Z2fW3co1eBV7b_MKuNoTBDZdpk")
               ng-map(center="4.23398,101.9722963" zoom="6" zoom-to-include-markers="auto")
                marker(ng-if="nodes[i].convertedData.location.lat&&nodes[i].convertedData.location.lng" ng-repeat="i in identifiers" position="{{nodes[i].convertedData.location.lat}},{{nodes[i].convertedData.location.lng}}" title="hello" icon="{{markers[i]}}" animation="Animation.BOUNCE")
           div.col.col-lg-6.col-md-6
