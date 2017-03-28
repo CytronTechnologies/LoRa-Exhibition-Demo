@@ -10,17 +10,17 @@ for(var i=start;i<now;i+=3600*24*1000){
 //console.log(periods);
 var convertData = function(data) {
      var bytes = hexToBytes(data);
-     var temperature = (bytes[9] << 8 | bytes[10]) / 100;
+     var temperature = (bytes[2] << 8 | bytes[3]) / 10;
      var location = {
           lat: null,
-          lng: null
+          lng: null,
+          alt: null,
      };
-     location.lat = (bytes[0] << 24 | bytes[1] << 16 | bytes[2] << 8 | bytes[3]) / 1000000;
-     location.lng = (bytes[4] << 24 | bytes[5] << 16 | bytes[6] << 8 | bytes[7]) / 1000000;
-     /*if(location.lat==0&&location.lng==0){
-     location.lat=4.23398;
-     location.lng=101.9722963;
-     }*/
+     if(bytes.length > 4){
+     	location.lat = (bytes[6] << 16 | bytes[7] << 8 | bytes[8]) / 10000;
+     	location.lng = (bytes[9] << 16 | bytes[10] << 8 | bytes[11]) / 10000;
+        location.alt = (bytes[12] << 16 | bytes[13] << 8 | bytes[14]) /10000;
+     }
      return {
           temperature: temperature,
           location: location
@@ -32,7 +32,7 @@ var hexToBytes = function(hex) {
      return bytes;
 }
 app.factory('socket', function($rootScope) {
-     var socket = io('/');
+     var socket = io('/', {path: "/lorademo/socket.io/"});
      return {
           on: function(eventName, callback) {
                socket.on(eventName, function() {
@@ -80,14 +80,23 @@ app.controller('MainController', function($window, $scope, $http, $interval, soc
      $scope.nodes = [];
      $scope.markers = [];
      $scope.connected = [];
+     var test;
      var index = 0;
+     var checkDataEUI = function(array, EUI){
+     	var isTrue = false;
+        array.forEach(function(item){
+		if(item.id == EUI)
+			isTrue = true;
+	});
+	return isTrue;
+     }
      socket.on('uplink', function(data) {
           console.log(data);
-          if ($scope.identifiers.indexOf(data.EUI) == -1) {
+          if (!checkDataEUI($scope.identifiers, data.EUI)) {
                index++;
-               $scope.identifiers.push(String(data.EUI));
+               $scope.identifiers.push({id:String(data.EUI),name:$scope.places[String(data.EUI)]});
                $scope.markers[data.EUI] = {
-                    url: '/img/lora' + index + '.png'
+                    url: 'img/lora' + index + '.png'
                }
           }
           data.convertedData = convertData(data.data);
@@ -98,12 +107,35 @@ app.controller('MainController', function($window, $scope, $http, $interval, soc
           $scope.nodes[data.EUI] = data;
           //console.log($scope.nodes)
 
+          stopTest();
+
           //do some disconnected status logic here
           var currentTime = new Date().getTime();
           $scope.identifiers.forEach(function(item) {
                //console.log($scope.nodes[item].EUI, currentTime - $scope.nodes[item].ts)
-               $scope.nodes[item].connected = (currentTime - $scope.nodes[item].ts < 60000);
+               $scope.nodes[item.id].connected = (currentTime - $scope.nodes[item.id].ts < 60000);
           })
+
+          testConnection();
      })
 
+     var stopTest = function(){
+     	  if (angular.isDefined(test)) {
+            $interval.cancel(test);
+            test = undefined;
+          }
+     }
+
+     var testConnection = function(){
+          $interval(function(){
+		var currentTime = new Date().getTime();
+         	$scope.identifiers.forEach(function(item) {
+               		//console.log($scope.nodes[item].EUI, currentTime - $scope.nodes[item].ts)
+               		$scope.nodes[item.id].connected = (currentTime - $scope.nodes[item.id].ts < 60000);
+          	})
+
+          }, 20000) 
+     }
+
+     test = testConnection();
 })

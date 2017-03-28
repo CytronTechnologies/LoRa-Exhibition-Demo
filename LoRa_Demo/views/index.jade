@@ -9,9 +9,9 @@ block content
       div(style="clear:both")
       ul.collaborators
         li.lora
-          img(src="/img/LoRa.png")
+          img(src="img/LoRa.png")
         li.cytron
-          img(src="/img/Cytron.png")
+          img(src="img/Cytron.png")
       div.title
         h1
           b= title
@@ -21,18 +21,18 @@ block content
           div.col.col-lg-6.col-md-6
             div.map-container(map-lazy-load="https://maps.google.com/maps/api/js?key=AIzaSyClRlsn8Z2fW3co1eBV7b_MKuNoTBDZdpk")
               ng-map(center="4.23398,101.9722963" zoom="6" zoom-to-include-markers="auto")
-               marker(ng-if="nodes[i].convertedData.location.lat&&nodes[i].convertedData.location.lng" ng-repeat="i in identifiers" position="{{nodes[i].convertedData.location.lat}},{{nodes[i].convertedData.location.lng}}" title="hello" icon="{{markers[i]}}" animation="Animation.BOUNCE")
+               marker(ng-if="nodes[i.id].convertedData.location.lat&&nodes[i.id].convertedData.location.lng" ng-repeat="i in identifiers" position="{{nodes[i.id].convertedData.location.lat}},{{nodes[i.id].convertedData.location.lng}}" title="hello" icon="{{markers[i.id]}}" animation="Animation.BOUNCE")
           div.col.col-lg-6.col-md-6
-            div.panel.panel-default(ng-class="nodes[i].connected?'blue':'red'" ng-repeat="i in identifiers")
+            div.panel.panel-default(ng-class="nodes[i.id].connected?'blue':'red'" ng-repeat="i in identifiers | orderBy: 'name'")
               div.panel-heading
-               img(ng-src="{{markers[i].url}}")
-               b {{nodes[i].place}}
-               p.connected {{nodes[i].connected?'Connected':'Disconnected'}}
+               img(ng-src="{{markers[i.id].url}}")
+               b(style="text-transform:uppercase") {{nodes[i.id].place}}
+               p.connected {{nodes[i.id].connected?'Connected':'Disconnected'}}
               div.panel-body 
-               p Temperature: {{nodes[i].convertedData.temperature}} *C
-               div(ng-show="nodes[i].convertedData.location.lat&&nodes[i].convertedData.location.lng")
-                p Latitude: {{nodes[i].convertedData.location.lat}}
-                p Longitude: {{nodes[i].convertedData.location.lng}}
+               p Temperature: {{nodes[i.id].convertedData.temperature}} *C
+               div(ng-show="nodes[i.id].convertedData.location.lat&&nodes[i.id].convertedData.location.lng")
+                p Latitude: {{nodes[i.id].convertedData.location.lat}}
+                p Longitude: {{nodes[i.id].convertedData.location.lng}}
               div.panel-footer
-               p Last Count: {{nodes[i].fcnt}}
-               p Last Feed : {{nodes[i].ts | amUtc | amLocal | amDateFormat:'dddd, Do MMMM YYYY, h:mm:ss a'}}
+               p Last Count: {{nodes[i.id].fcnt}}
+               p Last Feed : {{nodes[i.id].ts | amUtc | amLocal | amDateFormat:'dddd, Do MMMM YYYY, h:mm:ss a'}}

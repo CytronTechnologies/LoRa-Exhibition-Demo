@@ -33,69 +33,66 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
-app.use('/devices', devices);
-app.use('/statistics', statistics);
+//app.use('/devices', devices);
+//app.use('/statistics', statistics);
 
-// Add Socket.io clients to the appEUI room
-var appId = 'sunwaylorademo';
+// Add Socket.io clients to the room
+var room = 'lorademo';
 
 io.on('connection', function (socket) {
-  socket.join(appId);
+  socket.join(room);
 	console.log('client joined with '+socket.id)
 	socket.on('disconnect', function(){
 		console.log('client with '+socket.id+' disconnected');
 	});
 });
 
-//running loriot application
+// Running The Things Network application
+// Configuration for The Things Network
+// Find your values with "ttnctl applications" or on the Dashboard:
+// https://console.thethingsnetwork.org/applications/
 
-var websocket;
+var ttn = require('ttn');
+var region = 'brazil';
+var appId = '70b3d57ed0000977';
+var accessKey = 'ttn-account-v2.juzWB_MKZspLI-PeiUAp2wjGteBuqTK75KdW9urJHnY';
 
-var startWebSocket = function(){
-  websocket = new WebSocket(require('./config/loriot').endpoint);
-  websocket.onopen = function(evt) {
-    onOpen(evt);
-    websocket.onclose = function(evt) {
-      onClose(evt)
-    };
-    websocket.onmessage = function(evt) {
-      onMessage(evt)
-    };
-    websocket.onerror = function(evt) {
-      onError(evt)
-    };
-  };
-}
+// Start the TTN Client
+var client = new ttn.Client(region, appId, accessKey);
 
-function onOpen(evt) {
-  console.log('Websocket opened');
-}
-function onClose(evt) {
-  console.log('Websocket disconnected');
-  //restart websocket
-  setTimeout(startWebSocket, 1000);
-}
-function onMessage(evt) {
-  try {
-  console.log(evt.data)
-  var dat = JSON.parse(evt.data);
-  new DeviceLog(dat).save(function(err) {
-    if (err) console.log(err);
-  });
-  io.to(appId).emit('uplink', dat);
+client.on('connect', function(){
+  console.log('[DEBUG]','Connected to ttn network');
+});
+
+// Forward uplink to appEUI room in Socket.io
+client.on('message', function (deviceId, data) {
+  console.log("[DEBUG]", "Message from Device: " + deviceId)
+  //data.devEUI = deviceId
+  var dat = {
+  	fcnt: data.counter,
+	EUI: data.hardware_serial,
+	ts: new Date(data.metadata.time).getTime(),
+	data: data.payload_fields.payload,
+	port: data.port
   }
-  catch(e){
-    console.log("ERROR in onMessage websocket");
-    websocket.close();
-  }
-}
-function onError(evt) {
-  console.log(evt.data);
-  startWebSocket();
-}
+  io.to(room).emit('uplink', dat)
+});
 
-//start websocket
-startWebSocket();
+// Forward activations to appEUI room in Socket.io
+client.on('activation', function(deviceId, data) {
+    console.log('[INFO] ', 'Activation:', deviceId, data);
+});
+
+// Print errors to the console
+client.on('error', function (err) {
+  console.log("[ERROR]", err.message)
+});
+
+// Close the TTN client on exit
+process.on('exit', function(code) {
+  client.end()
+});
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');

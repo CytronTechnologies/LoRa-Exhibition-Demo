@@ -1,25 +1,25 @@
 {
     "result": [{
         "id": "BE7A0100000008F6",
-        "name": "Le Roy Room"
+        "name": "LoRa Demo Node 1"
     }, {
         "id": "BE7A0100000008F0",
-        "name": "Le Roy House"
+        "name": "LoRa Demo Node 2"
     }, {
         "id": "BE7A0100000008F5",
-        "name": "AHU room"
+        "name": "LoRa Demo Node 3"
     }, {
         "id": "BE7A0100000008F3",
-        "name": "Finance Office"
+        "name": "LoRa Demo Node 4"
     }, {
         "id": "BE7A0100000008EF",
         "name": "Elevator Entrance To Office"
     },{
         "id": "BE7A0100000008F4",
-        "name": "SPFM Facility Management Office"
+        "name": "LoRa Demo Node 5"
     },{
         "id": "0004A30B001B312E",
-        "name": "Menara Sunway Control Room"
+        "name": "Microchip AU Test Node"
     },{
         "id": "000000002B286014",
         "name": "Sunway Anexxe Level 5 East Wing"

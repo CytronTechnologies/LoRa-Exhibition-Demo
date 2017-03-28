@@ -3,22 +3,27 @@ html(lang='en', ng-app='myApp')
   head
     title= title
     meta(name='viewport', content='width=device-width, initial-scale=1.0')
-    link(rel='stylesheet', href='/css/bootstrap.min.css')
-    link(rel='stylesheet', href='/css/style.css')
+    link(href="https://fonts.googleapis.com/css?family=Titillium+Web" rel="stylesheet")
+    link(rel='stylesheet', href='css/bootstrap.min.css')
+    link(rel='stylesheet', href='css/style.css')
     style.
+     body
+     {
+     font-family:'Titillium Web'!important;
+     }
      highchart
      {
      display: block;
      width: 100%;
      max-width: 100%;
      }
-    script(src='/js/angular.min.js')
-    script(src='/js/socket.io.js')
-    script(src='/js/moment.js')
-    script(src='/js/angular-moment.min.js')
-    script(src='/js/ng-map.min.js')
-    script(src="/js/highcharts.src.js")
-    script(src="/js/highcharts-ng.min.js")
-    script(src="/js/ui-bootstrap-tpls.js")
-    script(src='/js/main.js')
+    script(src='js/angular.min.js')
+    script(src='js/socket.io.js')
+    script(src='js/moment.js')
+    script(src='js/angular-moment.min.js')
+    script(src='js/ng-map.min.js')
+    script(src="js/highcharts.src.js")
+    script(src="js/highcharts-ng.min.js")
+    script(src="js/ui-bootstrap-tpls.js")
+    script(src='js/main.js')
   block content
