@@ -1,2 +1,2 @@
 # LoRa-Exhibition-Demo
-A simple application demo of LoRa for exhibition
+LoRa applications for demonstration and showcase purpose
