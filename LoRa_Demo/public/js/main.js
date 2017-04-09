@@ -54,15 +54,27 @@ app.factory('socket', function($rootScope) {
           }
      };
 })
-.directive("ngFormCommit", [function(){
-    return {
-        require:"form",
-        link: function($scope, $el, $attr, $form) {
-            $form.commit = function() {
-                $el[0].submit();
-            };
-        }
-    };
+.filter("GPSLatFormat", [function(){
+    var pipe = function(input){
+        console.log(input);
+     	var decimal1 = Math.floor(input);
+    	var decimal2 = Math.floor((input - decimal1)*60);
+    	var decimal3 = Math.round(((input - decimal1)*60 - decimal2)*60);
+    	var dir = input>=0? 'N':'S';
+    	return (decimal1.toString() + '\xBA ' + decimal2.toString() + '\' ' + decimal3.toString() + '\'\' ' + dir);
+    }
+    return pipe;
+}])
+
+.filter("GPSLngFormat", [function(){
+    var pipe = function(input){
+    	var decimal1 = Math.floor(input);
+    	var decimal2 = Math.floor((input - decimal1)*60);
+    	var decimal3 = Math.round(((input - decimal1)*60 - decimal2)*60);
+    	var dir = input>=0? 'E':'W';
+    	return (decimal1.toString() + '\xBA ' + decimal2.toString() + '\' ' + decimal3.toString() + '\'\' ' + dir);
+    }
+    return pipe;
 }])
 
 app.controller('MainController', function($window, $scope, $http, $interval, socket, moment) {

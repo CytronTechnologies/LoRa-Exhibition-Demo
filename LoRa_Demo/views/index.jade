@@ -23,16 +23,31 @@ block content
               ng-map(center="4.23398,101.9722963" zoom="6" zoom-to-include-markers="auto")
                marker(ng-if="nodes[i.id].convertedData.location.lat&&nodes[i.id].convertedData.location.lng" ng-repeat="i in identifiers" position="{{nodes[i.id].convertedData.location.lat}},{{nodes[i.id].convertedData.location.lng}}" title="hello" icon="{{markers[i.id]}}" animation="Animation.BOUNCE")
           div.col.col-lg-6.col-md-6
+            div(ng-show="identifiers.length==0" class="no-nodes-label")
+             h3 No sensors has been detected yet.
             div.panel.panel-default(ng-class="nodes[i.id].connected?'blue':'red'" ng-repeat="i in identifiers | orderBy: 'name'")
               div.panel-heading
                img(ng-src="{{markers[i.id].url}}")
                b(style="text-transform:uppercase") {{nodes[i.id].place}}
                p.connected {{nodes[i.id].connected?'Connected':'Disconnected'}}
-              div.panel-body 
-               p Temperature: {{nodes[i.id].convertedData.temperature}} *C
-               div(ng-show="nodes[i.id].convertedData.location.lat&&nodes[i.id].convertedData.location.lng")
-                p Latitude: {{nodes[i.id].convertedData.location.lat}}
-                p Longitude: {{nodes[i.id].convertedData.location.lng}}
+               div(style="clear:both")
+              div.panel-body
+               div.widgets-container
+                div.widget-container
+                 div.inner-content
+                  div.inner-cell
+                   i.fa.fa-thermometer-2
+                   div
+                    h1 {{nodes[i.id].convertedData.temperature | number:1 }}&deg;C
+                 p.sensor-label Temperature
+                div(class='widget-container' ng-show="nodes[i.id].convertedData.location.lat&&nodes[i.id].convertedData.location.lng")
+                 div.inner-content
+                  div.inner-cell
+                   i.fa.fa-map-marker
+                   div
+                    h4 {{nodes[i.id].convertedData.location.lat | GPSLatFormat}}
+                    h4 {{nodes[i.id].convertedData.location.lng | GPSLngFormat}}
+                 p.sensor-label GPS
               div.panel-footer
                p Last Count: {{nodes[i.id].fcnt}}
                p Last Feed : {{nodes[i.id].ts | amUtc | amLocal | amDateFormat:'dddd, Do MMMM YYYY, h:mm:ss a'}}

@@ -3,7 +3,7 @@
 #include <SPI.h>
 #include <math.h>
 
-//#define USE_GPS
+#define USE_GPS
 
 #define LED 13
 
