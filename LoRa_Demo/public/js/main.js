@@ -56,7 +56,7 @@ app.factory('socket', function($rootScope) {
 })
 .filter("GPSLatFormat", [function(){
     var pipe = function(input){
-        console.log(input);
+        //console.log(input);
      	var decimal1 = Math.floor(input);
     	var decimal2 = Math.floor((input - decimal1)*60);
     	var decimal3 = Math.round(((input - decimal1)*60 - decimal2)*60);
@@ -91,7 +91,7 @@ app.controller('MainController', function($window, $scope, $http, $interval, soc
      $scope.identifiers = [];
      $scope.nodes = [];
      $scope.markers = [];
-     $scope.connected = [];
+     $scope.connected = 0;
      var test;
      var index = 0;
      var checkDataEUI = function(array, EUI){
@@ -102,6 +102,17 @@ app.controller('MainController', function($window, $scope, $http, $interval, soc
 	});
 	return isTrue;
      }
+     var updateConnectionStatus = function(){
+        var numberOfConnections = 0;
+	numberOfConnections = $scope.identifiers.reduce(function(prevVal, item) {
+    		if($scope.nodes[item.id].connected)
+		 return prevVal + 1;
+                else
+                 return prevVal;
+	}, 0);
+	$scope.connected = numberOfConnections;
+     }
+
      socket.on('uplink', function(data) {
           console.log(data);
           if (!checkDataEUI($scope.identifiers, data.EUI)) {
@@ -126,6 +137,7 @@ app.controller('MainController', function($window, $scope, $http, $interval, soc
           $scope.identifiers.forEach(function(item) {
                //console.log($scope.nodes[item].EUI, currentTime - $scope.nodes[item].ts)
                $scope.nodes[item.id].connected = (currentTime - $scope.nodes[item.id].ts < 60000);
+	       updateConnectionStatus();
           })
 
           testConnection();
@@ -145,6 +157,7 @@ app.controller('MainController', function($window, $scope, $http, $interval, soc
                		//console.log($scope.nodes[item].EUI, currentTime - $scope.nodes[item].ts)
                		$scope.nodes[item.id].connected = (currentTime - $scope.nodes[item.id].ts < 60000);
           	})
+		updateConnectionStatus();
 
           }, 20000) 
      }

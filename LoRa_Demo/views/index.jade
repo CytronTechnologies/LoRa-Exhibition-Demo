@@ -22,6 +22,10 @@ block content
             div.map-container(map-lazy-load="https://maps.google.com/maps/api/js?key=AIzaSyClRlsn8Z2fW3co1eBV7b_MKuNoTBDZdpk")
               ng-map(center="4.23398,101.9722963" zoom="6" zoom-to-include-markers="auto")
                marker(ng-if="nodes[i.id].convertedData.location.lat&&nodes[i.id].convertedData.location.lng" ng-repeat="i in identifiers" position="{{nodes[i.id].convertedData.location.lat}},{{nodes[i.id].convertedData.location.lng}}" title="hello" icon="{{markers[i.id]}}" animation="Animation.BOUNCE")
+            div
+             p {{identifiers.length}} device(s) recorded
+             p {{connected}} device(s) online    
+             p {{identifiers.length - connected}} device(s) offline
           div.col.col-lg-6.col-md-6
             div(ng-show="identifiers.length==0" class="no-nodes-label")
              h3 No sensors has been detected yet.
