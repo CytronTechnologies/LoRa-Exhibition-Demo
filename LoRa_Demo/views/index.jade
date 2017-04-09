@@ -22,10 +22,16 @@ block content
             div.map-container(map-lazy-load="https://maps.google.com/maps/api/js?key=AIzaSyClRlsn8Z2fW3co1eBV7b_MKuNoTBDZdpk")
               ng-map(center="4.23398,101.9722963" zoom="6" zoom-to-include-markers="auto")
                marker(ng-if="nodes[i.id].convertedData.location.lat&&nodes[i.id].convertedData.location.lng" ng-repeat="i in identifiers" position="{{nodes[i.id].convertedData.location.lat}},{{nodes[i.id].convertedData.location.lng}}" title="hello" icon="{{markers[i.id]}}" animation="Animation.BOUNCE")
-            div
-             p {{identifiers.length}} device(s) recorded
-             p {{connected}} device(s) online    
-             p {{identifiers.length - connected}} device(s) offline
+            div.widgets-container
+             div.widget-container.col-33
+              h2 {{identifiers.length}}
+              p recorded
+             div.widget-container.col-33
+              h2 {{connected}}
+              p online
+             div.widget-container.col-33   
+              h2 {{identifiers.length - connected}}
+              p offline
           div.col.col-lg-6.col-md-6
             div(ng-show="identifiers.length==0" class="no-nodes-label")
              h3 No sensors has been detected yet.
@@ -37,14 +43,14 @@ block content
                div(style="clear:both")
               div.panel-body
                div.widgets-container
-                div.widget-container
+                div.widget-container.col-50
                  div.inner-content
                   div.inner-cell
                    i.fa.fa-thermometer-2
                    div
                     h1 {{nodes[i.id].convertedData.temperature | number:1 }}&deg;C
                  p.sensor-label Temperature
-                div(class='widget-container' ng-show="nodes[i.id].convertedData.location.lat&&nodes[i.id].convertedData.location.lng")
+                div(class='widget-container col-50' ng-show="nodes[i.id].convertedData.location.lat&&nodes[i.id].convertedData.location.lng")
                  div.inner-content
                   div.inner-cell
                    i.fa.fa-map-marker

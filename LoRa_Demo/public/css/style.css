@@ -98,7 +98,6 @@ ng-map{
 }
 
 .panel-body, .widgets-container{
-  background:#ddd;
   text-align:center;
 }
 
@@ -136,19 +135,38 @@ tbody tr{
     background-color: #d9d9d9;
 }
 
+.panel-body{
+ background:#ddd;
+}
+
+.panel-body .widgets-container{
+  background:#ddd;
+  max-width: 600px;
+}
+
 .widgets-container{
   width:100%;
   text-align:center;
   display:inline-block;
-  max-width: 600px;
 }
 
 .widget-container{
-  width:48%;
   margin:1%;
   float:left;
   background:white;
   padding:10px;
+}
+
+.widget-container.col-50{
+   width:48%;
+}
+
+.widget-container.col-33{
+   width:31.33%;
+}
+
+.widget-container.col-25{
+   width:23%;
 }
 
 .widget-container .sensor-label{
