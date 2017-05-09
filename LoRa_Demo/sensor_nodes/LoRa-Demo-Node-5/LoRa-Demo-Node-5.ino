@@ -4,6 +4,7 @@
 #include <math.h>
 
 //#define USE_GPS
+#define USE_PM25
 
 #define LED 13
 
@@ -16,10 +17,15 @@ TinyGPS gps;
 SoftwareSerial ss(8, 9);
 float flat;
 float flon;
+#elif defined(USE_PM25)
+#define payload_size 8
+#include <pm25.h>
+SoftwareSerial pm2_5(8, 9);
 #else
 #define payload_size 4
 #endif
 unsigned long previousMillis = 0;
+uint16_t prev_val = 0;
 
 static const PROGMEM u1_t NWKSKEY[16] ={ 0xEB, 0xD3, 0xAF, 0x3C, 0xF8, 0xFE, 0x3F, 0xDC, 0xDB, 0xA8, 0xBE, 0x80, 0x87, 0x76, 0x9D, 0xA0 };
 static const u1_t PROGMEM APPSKEY[16] ={ 0x51, 0x07, 0x7A, 0xFF, 0xA0, 0x76, 0x41, 0xA5, 0x5B, 0x1C, 0xA2, 0x20, 0xDD, 0x61, 0x5D, 0x14 };
@@ -54,19 +60,38 @@ const lmic_pinmap lmic_pins = {
     .dio = {2, 5, 6},
 };
 
+void debug_char(u1_t b){
+  Serial.write(b);  
+}
+
+void debug_hex (u1_t b) {
+    debug_char("0123456789ABCDEF"[b>>4]);
+    debug_char("0123456789ABCDEF"[b&0xF]);
+}
+
+void debug_buf (const u1_t* buf, u2_t len) {
+    while(len--) {
+        debug_hex(*buf++);
+        debug_char(' ');
+    }
+    debug_char('\r');
+    debug_char('\n');
+}
+
 void onEvent (ev_t ev) {
     //Serial.print(os_getTime());
     //Serial.print(": ");
     switch(ev) {
         case EV_TXCOMPLETE:
             Serial.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
-            /*if (LMIC.txrxFlags & TXRX_ACK)
+            if (LMIC.txrxFlags & TXRX_ACK)
               Serial.println(F("Received ack"));
             if (LMIC.dataLen) {
-              Serial.println(F("Received "));
-              Serial.println(LMIC.dataLen);
+              Serial.print(F("Received "));
+              Serial.print(LMIC.dataLen);
               Serial.println(F(" bytes of payload"));
-            }*/
+              debug_buf(LMIC.frame+LMIC.dataBeg, LMIC.dataLen);
+            }
             // Schedule next transmission
             //os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
             break;
@@ -99,6 +124,11 @@ void setup() {
     mydata[5] = 0x88; //type GPS
 #endif
 
+#ifdef USE_PM25
+    mydata[4] = 0x02; //channel 2
+    mydata[5] = 0x89; //type pm25
+#endif
+
     //initialise LED as output and at low state
     pinMode(LED, OUTPUT);
     digitalWrite(LED, LOW);
@@ -106,6 +136,11 @@ void setup() {
 #ifdef USE_GPS    
     //start retrieving GPS
     ss.begin(9600);
+#endif
+
+#ifdef USE_PM25
+    pm2_5.begin(9600);
+    PM25.init(&pm2_5, &Serial);
 #endif
 
     os_init();
@@ -137,6 +172,9 @@ void loop() {
 #ifdef USE_GPS
       readGPS();
 #endif
+#ifdef USE_PM25
+      readPM2_5();
+#endif
       do_send(&sendjob);
       previousMillis = millis();
 
@@ -159,6 +197,21 @@ void readSensor(){
     mydata[3] = lowByte(sensor_value);
     
 }
+
+#ifdef USE_PM25
+void readPM2_5(){
+  uint16_t val = PM25.read();
+  if(val != 0){
+    mydata[6] = highByte(val);
+    mydata[7] = lowByte(val);
+    prev_val = val;
+  }
+  else{
+    mydata[6] = highByte(prev_val);
+    mydata[7] = lowByte(prev_val);
+  }
+}
+#endif
 
 #ifdef USE_GPS
 void readGPS(){

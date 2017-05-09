@@ -170,6 +170,7 @@ tbody tr{
 }
 
 .widget-container .sensor-label{
+ text-transform: capitalize;
  font-weight:bold;
 }
 
@@ -198,6 +199,10 @@ tbody tr{
 
 .widget-container .fa-map-marker{
   color:red
+}
+
+.widget-container .fa-cubes{
+  color: #999;
 }
 
 .widget-container h1,

@@ -8,29 +8,6 @@ for(var i=start;i<now;i+=3600*24*1000){
      periods.push(i);
 }
 //console.log(periods);
-var convertData = function(data) {
-     var bytes = hexToBytes(data);
-     var temperature = (bytes[2] << 8 | bytes[3]) / 10;
-     var location = {
-          lat: null,
-          lng: null,
-          alt: null,
-     };
-     if(bytes.length > 4){
-     	location.lat = (bytes[6] << 16 | bytes[7] << 8 | bytes[8]) / 10000;
-     	location.lng = (bytes[9] << 16 | bytes[10] << 8 | bytes[11]) / 10000;
-        location.alt = (bytes[12] << 16 | bytes[13] << 8 | bytes[14]) /10000;
-     }
-     return {
-          temperature: temperature,
-          location: location
-     }
-}
-var hexToBytes = function(hex) {
-     for (var bytes = [], c = 0; c < hex.length; c += 2)
-          bytes.push(parseInt(hex.substr(c, 2), 16));
-     return bytes;
-}
 app.factory('socket', function($rootScope) {
      var socket = io('/', {path: "/lorademo/socket.io/"});
      return {
@@ -54,7 +31,9 @@ app.factory('socket', function($rootScope) {
           }
      };
 })
-.filter("GPSLatFormat", [function(){
+
+// Custom filters
+app.filter("GPSLatFormat", [function(){
     var pipe = function(input){
         //console.log(input);
      	var decimal1 = Math.floor(input);
@@ -77,8 +56,31 @@ app.factory('socket', function($rootScope) {
     return pipe;
 }])
 
-app.controller('MainController', function($window, $scope, $http, $interval, socket, moment) {
+.filter("celsiusFormat",[function(){
+    var pipe = function(input){
+    	return input.toString().concat(' \xB0C');
+    }
+    return pipe;
+}]) 
+
+.filter("pm25Format",[function(){
+    var pipe = function(input){
+    	return input.toString().concat(' ug/m\xB3');
+    }
+    return pipe;
+}]) 
+
+app.controller('MainController', function($filter, $window, $scope, $http, $interval, socket, moment) {
      console.log('Get started!');
+
+     // apply filter function
+     $scope.applyFilter = function(model, filter) {
+	return $filter(filter)(model);
+     };
+
+     // update icons for various kinds of sensors
+     $scope.config = config;
+
      $scope.places = [];
      $http.get("place.json").then(function(response) {
           //console.log(response.data.result);
@@ -122,7 +124,7 @@ app.controller('MainController', function($window, $scope, $http, $interval, soc
                     url: 'img/lora' + index + '.png'
                }
           }
-          data.convertedData = convertData(data.data);
+          data.convertedData = cayenne(data.data);
           if ($scope.places[String(data.EUI)])
                data.place = $scope.places[String(data.EUI)];
           else
